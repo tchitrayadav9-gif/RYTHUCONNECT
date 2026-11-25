@@ -1,0 +1,26 @@
+{
+  "name": "rythuconnect-server",
+  "version": "1.0.0",
+  "description": "RythuConnect Backend REST API - Farmer to Customer Marketplace with 10 Syllabus Modules",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node utils/seeder.js",
+    "test": "node tests/api.test.js"
+  },
+  "keywords": ["agritech", "mern", "express", "sqlite", "mongodb", "academic"],
+  "author": "RythuConnect Team",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "mongoose": "^8.8.2",
+    "sqlite3": "^5.1.7"
+  }
+}
