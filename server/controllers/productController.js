@@ -21,6 +21,7 @@ let inMemoryProducts = [
     category: 'Vegetables',
     images: ['https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=80'],
     isAvailable: true,
+    approvalStatus: 'APPROVED',
     isFeatured: true,
     averageRating: 4.8,
     numReviews: 34,
@@ -51,6 +52,7 @@ let inMemoryProducts = [
     category: 'Spices',
     images: ['https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=600&q=80'],
     isAvailable: true,
+    approvalStatus: 'APPROVED',
     isFeatured: true,
     averageRating: 4.9,
     numReviews: 52,
@@ -81,6 +83,7 @@ let inMemoryProducts = [
     category: 'Fruits',
     images: ['https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=600&q=80'],
     isAvailable: true,
+    approvalStatus: 'APPROVED',
     isFeatured: true,
     averageRating: 5.0,
     numReviews: 89,
@@ -111,6 +114,7 @@ let inMemoryProducts = [
     category: 'Grains',
     images: ['https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=600&q=80'],
     isAvailable: true,
+    approvalStatus: 'APPROVED',
     isFeatured: false,
     averageRating: 4.7,
     numReviews: 28,
@@ -141,6 +145,7 @@ let inMemoryProducts = [
     category: 'Dairy',
     images: ['https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=600&q=80'],
     isAvailable: true,
+    approvalStatus: 'APPROVED',
     isFeatured: true,
     averageRating: 4.9,
     numReviews: 44,
@@ -171,6 +176,7 @@ let inMemoryProducts = [
     category: 'Vegetables',
     images: ['https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=600&q=80'],
     isAvailable: true,
+    approvalStatus: 'APPROVED',
     isFeatured: false,
     averageRating: 4.6,
     numReviews: 19,
@@ -190,34 +196,37 @@ let inMemoryProducts = [
   }
 ];
 
-// @desc    Get all products with Search, Category Filter, Price Range, Sort & Pagination (Module 9)
+// @desc    Get products (Filtered by isAvailable & approvalStatus for customers)
 // @route   GET /api/v1/products
 // @access  Public
 const getProducts = async (req, res, next) => {
   try {
-    const { search, category, minPrice, maxPrice, sort, page = 1, limit = 12 } = req.query;
+    const { search, category, minPrice, maxPrice, sort, farmerId, page = 1, limit = 12 } = req.query;
 
     if (isMongoConnected()) {
       const query = { isAvailable: true };
 
-      // Search by text / name
+      // If farmer requests own products, show all of them regardless of approval
+      if (farmerId) {
+        query.farmerId = farmerId;
+      } else {
+        query.approvalStatus = 'APPROVED';
+      }
+
       if (search) {
         query.name = { $regex: search, $options: 'i' };
       }
 
-      // Filter by category
       if (category && category !== 'All') {
         query.category = category;
       }
 
-      // Price Range Filter
       if (minPrice || maxPrice) {
         query.pricePerUnit = {};
         if (minPrice) query.pricePerUnit.$gte = Number(minPrice);
         if (maxPrice) query.pricePerUnit.$lte = Number(maxPrice);
       }
 
-      // Sort
       let sortBy = { createdAt: -1 };
       if (sort === 'price_asc') sortBy = { pricePerUnit: 1 };
       else if (sort === 'price_desc') sortBy = { pricePerUnit: -1 };
@@ -230,7 +239,6 @@ const getProducts = async (req, res, next) => {
       const total = await Product.countDocuments(query);
       const products = await Product.find(query)
         .populate('farmerId', 'name phone district')
-        .populate('categoryId', 'name')
         .sort(sortBy)
         .skip(skip)
         .limit(limitNum);
@@ -241,8 +249,13 @@ const getProducts = async (req, res, next) => {
         pages: Math.ceil(total / limitNum)
       });
     } else {
-      // In-Memory filtering & sorting for instant preview
       let filtered = [...inMemoryProducts];
+
+      if (farmerId) {
+        filtered = filtered.filter((p) => p.farmer && (p.farmer.id === farmerId || p.farmerId === farmerId));
+      } else {
+        filtered = filtered.filter((p) => p.approvalStatus === 'APPROVED' && p.isAvailable);
+      }
 
       if (search) {
         const s = search.toLowerCase();
@@ -309,9 +322,9 @@ const getProductById = async (req, res, next) => {
   }
 };
 
-// @desc    Create new produce listing (Farmer only - Module 10)
+// @desc    Create new produce listing (Farmer / Admin)
 // @route   POST /api/v1/products
-// @access  Private (FARMER)
+// @access  Private (FARMER, ADMIN)
 const createProduct = async (req, res, next) => {
   try {
     const {
@@ -326,7 +339,7 @@ const createProduct = async (req, res, next) => {
       harvestDate
     } = req.body;
 
-    if (!name || !description || !pricePerUnit || !availableStock) {
+    if (!name || !description || !pricePerUnit || availableStock === undefined) {
       return ApiResponse.badRequest(res, 'Please provide name, description, pricePerUnit, and availableStock');
     }
 
@@ -341,14 +354,16 @@ const createProduct = async (req, res, next) => {
         farmingPractice: farmingPractice || 'ORGANIC',
         category: category || 'Vegetables',
         images: images && images.length ? images : ['https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=80'],
-        harvestDate: harvestDate || new Date()
+        harvestDate: harvestDate || new Date(),
+        approvalStatus: 'APPROVED',
+        isAvailable: true
       });
 
       return ApiResponse.created(res, 'Produce listed successfully', newProduct);
     } else {
       const newProduct = {
         _id: 'prod_' + Date.now(),
-        farmerId: req.user.id || req.user._id,
+        farmerId: req.user.id || req.user._id || 'farmer_001',
         name,
         description,
         pricePerUnit: Number(pricePerUnit),
@@ -359,6 +374,7 @@ const createProduct = async (req, res, next) => {
         images: images && images.length ? images : ['https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=80'],
         harvestDate: harvestDate || new Date().toISOString(),
         isAvailable: true,
+        approvalStatus: 'APPROVED',
         averageRating: 5.0,
         numReviews: 0,
         farmer: {
@@ -383,7 +399,7 @@ const createProduct = async (req, res, next) => {
   }
 };
 
-// @desc    Update product (Farmer must own product or Admin)
+// @desc    Update product
 // @route   PUT /api/v1/products/:id
 // @access  Private (FARMER, ADMIN)
 const updateProduct = async (req, res, next) => {
@@ -392,11 +408,8 @@ const updateProduct = async (req, res, next) => {
 
     if (isMongoConnected()) {
       let product = await Product.findById(id);
-      if (!product) {
-        return ApiResponse.notFound(res, 'Product not found');
-      }
+      if (!product) return ApiResponse.notFound(res, 'Product not found');
 
-      // Ownership check (Module 5)
       if (product.farmerId.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN') {
         return ApiResponse.forbidden(res, 'Not authorized to modify another farmer’s produce listing');
       }
@@ -405,9 +418,7 @@ const updateProduct = async (req, res, next) => {
       return ApiResponse.success(res, 'Product updated successfully', product);
     } else {
       const index = inMemoryProducts.findIndex((p) => p._id === id || p.id === id);
-      if (index === -1) {
-        return ApiResponse.notFound(res, 'Product not found');
-      }
+      if (index === -1) return ApiResponse.notFound(res, 'Product not found');
 
       inMemoryProducts[index] = { ...inMemoryProducts[index], ...req.body };
       return ApiResponse.success(res, 'Product updated successfully (Demo Mode)', inMemoryProducts[index]);
@@ -417,7 +428,7 @@ const updateProduct = async (req, res, next) => {
   }
 };
 
-// @desc    Delete product (Farmer must own product or Admin)
+// @desc    Delete product
 // @route   DELETE /api/v1/products/:id
 // @access  Private (FARMER, ADMIN)
 const deleteProduct = async (req, res, next) => {
@@ -426,9 +437,7 @@ const deleteProduct = async (req, res, next) => {
 
     if (isMongoConnected()) {
       const product = await Product.findById(id);
-      if (!product) {
-        return ApiResponse.notFound(res, 'Product not found');
-      }
+      if (!product) return ApiResponse.notFound(res, 'Product not found');
 
       if (product.farmerId.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN') {
         return ApiResponse.forbidden(res, 'Not authorized to delete this produce');

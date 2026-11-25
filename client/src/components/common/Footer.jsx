@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Sprout, Phone, Mail, MapPin, ShieldCheck, Heart } from 'lucide-react';
+import { Sprout, Phone, Mail, MapPin, ShieldCheck, Heart, ExternalLink } from 'lucide-react';
 
 const Footer = () => {
+  const adminPortalUrl = import.meta.env.VITE_ADMIN_PORTAL_URL || 'http://localhost:5174';
+
   return (
     <footer className="bg-slate-900 text-slate-300 pt-16 pb-12 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -38,15 +40,25 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Stakeholder Links */}
+          {/* Customer & Portals Links */}
           <div>
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Portals</h4>
+            <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Customer Portal</h4>
             <ul className="space-y-2.5 text-sm">
-              <li><Link to="/dashboard/farmer" className="hover:text-agro-400 transition-colors">Farmer Hub</Link></li>
-              <li><Link to="/dashboard/customer" className="hover:text-agro-400 transition-colors">Customer Orders</Link></li>
-              <li><Link to="/dashboard/bulk" className="hover:text-agro-400 transition-colors">Bulk Procurement B2B</Link></li>
-              <li><Link to="/dashboard/delivery" className="hover:text-agro-400 transition-colors">Delivery Dispatcher</Link></li>
+              <li><Link to="/my-orders" className="hover:text-agro-400 transition-colors">My Orders & Tracking</Link></li>
+              <li><Link to="/addresses" className="hover:text-agro-400 transition-colors">Delivery Addresses</Link></li>
+              <li><Link to="/profile" className="hover:text-agro-400 transition-colors">Customer Profile</Link></li>
               <li><Link to="/academic-showcase" className="text-emerald-400 font-semibold hover:underline">Academic 10-Modules Lab</Link></li>
+              <li className="pt-2">
+                <a
+                  href={adminPortalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-300 bg-amber-950/60 border border-amber-800/50 px-2.5 py-1.5 rounded-lg hover:bg-amber-900/60 transition-colors"
+                >
+                  <span>Farmer & Admin Portal</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -72,12 +84,12 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>© 2026 RythuConnect. Developed with pride for Indian Farmers.</p>
+          <p>© 2026 RythuConnect. Customer Marketplace Platform.</p>
           <div className="flex items-center gap-6">
             <Link to="/about" className="hover:text-slate-400">About Us</Link>
             <Link to="/how-it-works" className="hover:text-slate-400">How It Works</Link>
             <span className="flex items-center gap-1 text-slate-400">
-              Made with <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500 inline" /> for AgriTech Innovation
+              Made with <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500 inline" /> for Indian Farmers
             </span>
           </div>
         </div>

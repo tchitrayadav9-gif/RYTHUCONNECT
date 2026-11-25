@@ -1,5 +1,6 @@
 /**
- * Authentication Context (Module 4: JWT & User State)
+ * Customer Authentication Context (Google OAuth Only)
+ * Repository: RYTHUCONNECT (Customer Website)
  */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
@@ -8,10 +9,15 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('rythu_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('rythu_customer_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
-  const [token, setToken] = useState(() => localStorage.getItem('rythu_token'));
+
+  const [token, setToken] = useState(() => localStorage.getItem('rythu_customer_token'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -21,51 +27,37 @@ export const AuthProvider = ({ children }) => {
         .then((res) => {
           if (res.data && res.data.user) {
             setUser(res.data.user);
-            localStorage.setItem('rythu_user', JSON.stringify(res.data.user));
+            localStorage.setItem('rythu_customer_user', JSON.stringify(res.data.user));
           }
         })
         .catch(() => {
-          // Token may have expired or server offline
+          // Token expired or server offline
         });
     }
   }, [token]);
 
-  const login = async (email, password) => {
+  // Google Sign-In Handler
+  const handleGoogleAuth = async (credentialResponse, profileData = null) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.post('/auth/login', { email, password });
-      const { user: loggedUser, token: authToken } = res.data;
+      const payload = {
+        credential: credentialResponse?.credential,
+        profile: profileData
+      };
 
-      setUser(loggedUser);
+      const res = await api.post('/auth/google', payload);
+      const { user: customerUser, token: authToken } = res.data;
+
+      setUser(customerUser);
       setToken(authToken);
-      localStorage.setItem('rythu_token', authToken);
-      localStorage.setItem('rythu_user', JSON.stringify(loggedUser));
+      localStorage.setItem('rythu_customer_token', authToken);
+      localStorage.setItem('rythu_customer_user', JSON.stringify(customerUser));
       setLoading(false);
-      return loggedUser;
+      return customerUser;
     } catch (err) {
       setLoading(false);
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const register = async (userData) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await api.post('/auth/register', userData);
-      const { user: registeredUser, token: authToken } = res.data;
-
-      setUser(registeredUser);
-      setToken(authToken);
-      localStorage.setItem('rythu_token', authToken);
-      localStorage.setItem('rythu_user', JSON.stringify(registeredUser));
-      setLoading(false);
-      return registeredUser;
-    } catch (err) {
-      setLoading(false);
-      setError(err.message);
+      setError(err.message || 'Google Sign-In failed');
       throw err;
     }
   };
@@ -73,14 +65,8 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('rythu_token');
-    localStorage.removeItem('rythu_user');
-  };
-
-  // Instant 1-click Demo Login for Academic Evaluators
-  const demoLogin = async (role = 'FARMER') => {
-    const email = `${role.toLowerCase()}@rythuconnect.com`;
-    return login(email, 'password123');
+    localStorage.removeItem('rythu_customer_token');
+    localStorage.removeItem('rythu_customer_user');
   };
 
   return (
@@ -90,10 +76,8 @@ export const AuthProvider = ({ children }) => {
         token,
         loading,
         error,
-        login,
-        register,
+        handleGoogleAuth,
         logout,
-        demoLogin,
         isAuthenticated: !!token
       }}
     >

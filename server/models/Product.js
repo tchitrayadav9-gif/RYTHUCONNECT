@@ -14,7 +14,7 @@ const productSchema = new mongoose.Schema(
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
-      required: true,
+      required: false,
       index: true
     },
     name: {
@@ -25,6 +25,11 @@ const productSchema = new mongoose.Schema(
     description: {
       type: String,
       required: [true, 'Please provide produce description']
+    },
+    category: {
+      type: String,
+      enum: ['Vegetables', 'Fruits', 'Grains', 'Spices', 'Dairy'],
+      default: 'Vegetables'
     },
     pricePerUnit: {
       type: Number,
@@ -72,12 +77,18 @@ const productSchema = new mongoose.Schema(
       default: true,
       index: true
     },
+    approvalStatus: {
+      type: String,
+      enum: ['PENDING_APPROVAL', 'APPROVED', 'REJECTED'],
+      default: 'APPROVED',
+      index: true
+    },
     isFeatured: {
       type: Boolean,
       default: false
     },
     traceability: {
-      farmDistrict: { type: String, default: 'Krishna' },
+      farmDistrict: { type: String, default: 'Guntur' },
       harvestBatchNumber: { type: String, default: () => 'BATCH-' + Date.now().toString(36).toUpperCase() },
       soilType: { type: String, default: 'Black Alluvial Soil' },
       certifiedOrganic: { type: Boolean, default: true }
@@ -98,8 +109,8 @@ const productSchema = new mongoose.Schema(
   }
 );
 
-// Compound text index for fast search (Module 9)
+// Compound text index for fast search
 productSchema.index({ name: 'text', description: 'text' });
-productSchema.index({ pricePerUnit: 1, availableStock: 1, isAvailable: 1 });
+productSchema.index({ pricePerUnit: 1, availableStock: 1, isAvailable: 1, approvalStatus: 1 });
 
 module.exports = mongoose.model('Product', productSchema);

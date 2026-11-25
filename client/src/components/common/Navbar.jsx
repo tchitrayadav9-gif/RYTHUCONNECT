@@ -9,11 +9,11 @@ import {
   LogOut,
   Menu,
   X,
-  GraduationCap,
   Store,
   Users,
   ShieldCheck,
-  ChevronDown
+  ChevronDown,
+  MapPin
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -22,21 +22,6 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-
-  const getDashboardPath = (role) => {
-    switch (role) {
-      case 'FARMER':
-        return '/dashboard/farmer';
-      case 'ADMIN':
-        return '/dashboard/admin';
-      case 'BULK_BUYER':
-        return '/dashboard/bulk';
-      case 'DELIVERY_PARTNER':
-        return '/dashboard/delivery';
-      default:
-        return '/dashboard/customer';
-    }
-  };
 
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
@@ -52,7 +37,7 @@ const Navbar = () => {
                 Rythu<span className="text-agro-600">Connect</span>
               </span>
               <span className="block text-[10px] font-semibold text-agro-700 tracking-wider uppercase -mt-1">
-                రైతు కనెక్ట్ • Direct AgriMarket
+                రైతు కనెక్ట్ • Direct Farm Marketplace
               </span>
             </div>
           </Link>
@@ -71,22 +56,16 @@ const Navbar = () => {
               How It Works
             </Link>
             <Link to="/about" className="text-sm font-semibold text-slate-700 hover:text-agro-700 transition-colors">
-              About
+              About Us
             </Link>
-            {/* Academic Evaluation Lab Link */}
-            <Link
-              to="/academic-showcase"
-              className="text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 flex items-center gap-1.5 transition-all shadow-sm"
-              title="10 Syllabus Modules Interactive Demo"
-            >
-              <GraduationCap className="w-4 h-4 text-emerald-700" />
-              Academic Lab (10 Modules)
+            <Link to="/contact" className="text-sm font-semibold text-slate-700 hover:text-agro-700 transition-colors">
+              Contact
             </Link>
           </div>
 
-          {/* Right Action Icons: Cart & Auth */}
+          {/* Right Action Icons: Cart & Google Auth */}
           <div className="hidden md:flex items-center gap-4">
-            {/* Cart Icon */}
+            {/* Shopping Cart */}
             <Link
               to="/cart"
               className="relative p-2 rounded-xl text-slate-700 hover:text-agro-700 hover:bg-slate-100 transition-colors"
@@ -100,7 +79,7 @@ const Navbar = () => {
               )}
             </Link>
 
-            {/* User Auth Menu */}
+            {/* Authenticated Customer Menu */}
             {isAuthenticated ? (
               <div className="relative">
                 <button
@@ -108,31 +87,49 @@ const Navbar = () => {
                   className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full border border-slate-200 hover:border-agro-300 hover:bg-agro-50/50 transition-all"
                 >
                   <img
-                    src={user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80'}
+                    src={user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'}
                     alt={user?.name}
                     className="w-7 h-7 rounded-full object-cover border border-agro-600"
                   />
                   <div className="text-left text-xs">
-                    <span className="font-bold text-slate-800 block truncate max-w-[100px]">{user?.name}</span>
-                    <span className="text-[10px] uppercase font-bold text-agro-700 tracking-wider">{user?.role}</span>
+                    <span className="font-bold text-slate-800 block truncate max-w-[120px]">{user?.name}</span>
+                    <span className="text-[10px] font-bold text-emerald-700">Verified Customer</span>
                   </div>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                 </button>
 
                 {profileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50">
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 animate-fadeIn">
                     <div className="px-4 py-2 border-b border-slate-100">
-                      <p className="text-xs text-slate-500">Signed in as</p>
-                      <p className="text-sm font-semibold text-slate-900 truncate">{user?.email}</p>
+                      <p className="text-xs text-slate-400">Signed in with Google</p>
+                      <p className="text-xs font-semibold text-slate-900 truncate">{user?.email}</p>
                     </div>
 
                     <Link
-                      to={getDashboardPath(user?.role)}
+                      to="/my-orders"
                       onClick={() => setProfileDropdownOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-agro-50 hover:text-agro-800 font-medium"
+                      className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-agro-50 hover:text-agro-800"
                     >
-                      <ShieldCheck className="w-4 h-4 text-agro-600" />
-                      {user?.role} Dashboard
+                      <ShoppingBag className="w-4 h-4 text-agro-600" />
+                      My Orders & Tracking
+                    </Link>
+
+                    <Link
+                      to="/addresses"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-agro-50 hover:text-agro-800"
+                    >
+                      <MapPin className="w-4 h-4 text-agro-600" />
+                      Delivery Addresses
+                    </Link>
+
+                    <Link
+                      to="/profile"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-agro-50 hover:text-agro-800"
+                    >
+                      <User className="w-4 h-4 text-agro-600" />
+                      Customer Profile
                     </Link>
 
                     <button
@@ -141,7 +138,7 @@ const Navbar = () => {
                         logout();
                         navigate('/');
                       }}
-                      className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
+                      className="w-full text-left flex items-center gap-2 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
                     >
                       <LogOut className="w-4 h-4" />
                       Sign Out
@@ -150,20 +147,12 @@ const Navbar = () => {
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-2.5">
-                <Link
-                  to="/login"
-                  className="text-sm font-semibold text-slate-700 hover:text-agro-700 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/register"
-                  className="text-sm font-semibold text-white bg-agro-700 hover:bg-agro-800 px-4 py-2 rounded-lg shadow-sm shadow-agro-700/20 transition-all hover:shadow-md"
-                >
-                  Join as Farmer / Buyer
-                </Link>
-              </div>
+              <Link
+                to="/login"
+                className="text-xs font-bold text-white bg-agro-700 hover:bg-agro-800 px-4 py-2 rounded-xl shadow-sm shadow-agro-700/20 transition-all flex items-center gap-1.5"
+              >
+                <User className="w-4 h-4" /> Sign In with Google
+              </Link>
             )}
           </div>
 
@@ -187,7 +176,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu Drawer */}
+      {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 space-y-3">
           <Link
@@ -205,13 +194,6 @@ const Navbar = () => {
             Verified Farmers
           </Link>
           <Link
-            to="/academic-showcase"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-base font-semibold text-emerald-700"
-          >
-            Academic Lab (10 Syllabus Modules)
-          </Link>
-          <Link
             to="/how-it-works"
             onClick={() => setMobileMenuOpen(false)}
             className="block py-2 text-base font-semibold text-slate-800 hover:text-agro-700"
@@ -225,16 +207,23 @@ const Navbar = () => {
           >
             About Us
           </Link>
+          <Link
+            to="/contact"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block py-2 text-base font-semibold text-slate-800 hover:text-agro-700"
+          >
+            Contact
+          </Link>
 
           <div className="pt-4 border-t border-slate-100 space-y-2">
             {isAuthenticated ? (
               <>
                 <Link
-                  to={getDashboardPath(user?.role)}
+                  to="/my-orders"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block w-full py-2.5 px-4 text-center text-sm font-semibold text-white bg-agro-700 rounded-lg"
+                  className="block w-full py-2.5 px-4 text-center text-sm font-semibold text-white bg-agro-700 rounded-xl"
                 >
-                  Go to {user?.role} Dashboard
+                  My Orders & Deliveries
                 </Link>
                 <button
                   onClick={() => {
@@ -248,22 +237,13 @@ const Navbar = () => {
                 </button>
               </>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
-                <Link
-                  to="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="py-2.5 text-center text-sm font-semibold text-slate-700 border border-slate-200 rounded-lg"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/register"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="py-2.5 text-center text-sm font-semibold text-white bg-agro-700 rounded-lg"
-                >
-                  Register
-                </Link>
-              </div>
+              <Link
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block w-full py-2.5 text-center text-sm font-semibold text-white bg-agro-700 rounded-xl shadow-md"
+              >
+                Sign In with Google
+              </Link>
             )}
           </div>
         </div>
