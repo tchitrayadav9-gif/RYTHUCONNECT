@@ -4,6 +4,7 @@ const {
   createOrder,
   getMyOrders,
   getFarmerOrders,
+  getAllOrders,
   updateOrderStatus,
   verifyDeliveryOtp
 } = require('../controllers/orderController');
@@ -12,8 +13,9 @@ const { authorize } = require('../middleware/roleMiddleware');
 
 router.post('/', protect, authorize('CUSTOMER'), createOrder);
 router.get('/my-orders', protect, authorize('CUSTOMER'), getMyOrders);
-router.get('/farmer-orders', protect, authorize('FARMER'), getFarmerOrders);
+router.get('/farmer-orders', protect, authorize('FARMER', 'ADMIN'), getFarmerOrders);
+router.get('/all', protect, authorize('ADMIN'), getAllOrders);
 router.patch('/:id/status', protect, authorize('FARMER', 'DELIVERY_PARTNER', 'ADMIN'), updateOrderStatus);
-router.post('/:id/verify-otp', protect, authorize('DELIVERY_PARTNER', 'ADMIN'), verifyDeliveryOtp);
+router.post('/:id/verify-otp', protect, authorize('FARMER', 'DELIVERY_PARTNER', 'ADMIN'), verifyDeliveryOtp);
 
 module.exports = router;

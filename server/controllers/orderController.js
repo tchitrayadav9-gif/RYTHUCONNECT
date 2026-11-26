@@ -279,10 +279,27 @@ const verifyDeliveryOtp = async (req, res, next) => {
   }
 };
 
+// @desc    Get all orders across system
+// @route   GET /api/v1/orders/all
+// @access  Private (ADMIN)
+const getAllOrders = async (req, res, next) => {
+  try {
+    if (isMongoConnected()) {
+      const orders = await Order.find().sort({ createdAt: -1 });
+      return ApiResponse.success(res, 'All orders fetched successfully', orders);
+    } else {
+      return ApiResponse.success(res, 'All orders fetched successfully (Demo Mode)', inMemoryOrders);
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createOrder,
   getMyOrders,
   getFarmerOrders,
+  getAllOrders,
   updateOrderStatus,
   verifyDeliveryOtp
 };

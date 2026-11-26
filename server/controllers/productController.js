@@ -201,15 +201,21 @@ let inMemoryProducts = [
 // @access  Public
 const getProducts = async (req, res, next) => {
   try {
-    const { search, category, minPrice, maxPrice, sort, farmerId, page = 1, limit = 12 } = req.query;
+    const { search, category, minPrice, maxPrice, sort, farmerId, showAll, approvalStatus, page = 1, limit = 12 } = req.query;
 
     if (isMongoConnected()) {
-      const query = { isAvailable: true };
+      const query = {};
+
+      if (showAll !== 'true') {
+        query.isAvailable = true;
+      }
 
       // If farmer requests own products, show all of them regardless of approval
       if (farmerId) {
         query.farmerId = farmerId;
-      } else {
+      } else if (approvalStatus) {
+        query.approvalStatus = approvalStatus;
+      } else if (showAll !== 'true') {
         query.approvalStatus = 'APPROVED';
       }
 
@@ -252,8 +258,10 @@ const getProducts = async (req, res, next) => {
       let filtered = [...inMemoryProducts];
 
       if (farmerId) {
-        filtered = filtered.filter((p) => p.farmer && (p.farmer.id === farmerId || p.farmerId === farmerId));
-      } else {
+        filtered = filtered.filter((p) => (p.farmer && p.farmer.id === farmerId) || p.farmerId === farmerId);
+      } else if (approvalStatus) {
+        filtered = filtered.filter((p) => p.approvalStatus === approvalStatus);
+      } else if (showAll !== 'true') {
         filtered = filtered.filter((p) => p.approvalStatus === 'APPROVED' && p.isAvailable);
       }
 
